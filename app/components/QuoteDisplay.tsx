@@ -76,6 +76,7 @@ export default function QuoteDisplay({ currentQuote, setCurrentQuote }: QuoteDis
           </cite>
         </div>
       </div>
+<<<<<<< HEAD
       
       {/* 刷新按钮 */}
       <button
@@ -88,6 +89,8 @@ export default function QuoteDisplay({ currentQuote, setCurrentQuote }: QuoteDis
           className={`fas fa-sync-alt text-white text-lg transition-transform duration-300 ${isAnimating ? 'animate-spin' : 'group-hover:rotate-180'}`}
         />
       </button>
+=======
+>>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)
     </div>
   );
 }
