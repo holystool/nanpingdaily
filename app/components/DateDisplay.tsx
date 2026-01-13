@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Lunar, Solar } from 'lunar-javascript'; 
+// @ts-ignore
+import { Lunar, Solar } from 'lunar-javascript';
 
 interface BuddhistEvent {
   name: string;
