@@ -9,10 +9,7 @@
   },
   "dependencies": {
     "@react-google-maps/api": "^2.19.3",
-<<<<<<< HEAD
-=======
     "lunar-javascript": "^1.7.7",
->>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)
     "next": "15.3.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
