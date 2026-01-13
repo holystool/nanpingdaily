@@ -1,34 +1,12 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-<<<<<<< HEAD
 interface BackgroundManagerProps {
   setCurrentBackground: (bg: string) => void;
-}
-
-=======
-// 定义组件接收的参数
-interface BackgroundManagerProps {
-  setCurrentBackground: (bg: string) => void;
-  // 必须在这里也声明 triggerRef，否则组件内部无法使用
   triggerRef?: React.MutableRefObject<(() => void) | null>;
 }
 
-// 如果要改成本地图片，把那些长长的网址全删了，改成这样：
-//const backgroundImages = [
-//  '/images/bg1.jpg',
-//  '/images/bg2.jpg',
-//  '/images/bg3.jpg',
-// 你放了多少张图，就写多少个路径
-//];
-
-
->>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)
 const backgroundImages = [
   'https://readdy.ai/api/search-image?query=peaceful%20zen%20temple%20courtyard%20with%20stone%20lanterns%20at%20dawn%2C%20traditional%20chinese%20architecture%2C%20misty%20mountains%20in%20background%2C%20soft%20golden%20morning%20light%2C%20minimalist%20composition%20with%20ancient%20pine%20trees%20and%20meditation%20stones&width=1920&height=1080&seq=zen-bg-2&orientation=landscape',
   'https://readdy.ai/api/search-image?query=serene%20bamboo%20forest%20with%20sunlight%20filtering%20through%20leaves%2C%20traditional%20zen%20garden%20path%2C%20peaceful%20meditation%20space%20with%20stone%20arrangements%2C%20soft%20natural%20lighting%2C%20minimalist%20asian%20aesthetic&width=1920&height=1080&seq=zen-bg-3&orientation=landscape',
@@ -66,135 +44,35 @@ const backgroundImages = [
   'https://readdy.ai/api/search-image?query=minimalist%20zen%20rock%20garden%20with%20raked%20sand%20patterns%2C%20traditional%20japanese%20stones%20arrangement%2C%20peaceful%20meditation%20space%2C%20soft%20natural%20lighting%2C%20clean%20lines%20and%20harmony&width=1920&height=1080&seq=zen-bg-6&orientation=landscape'
 ];
 
-<<<<<<< HEAD
-export default function BackgroundManager({ setCurrentBackground }: BackgroundManagerProps) {
-  const [isChanging, setIsChanging] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    // 每日随机背景
-    const today = new Date().toDateString();
-    const savedDate = localStorage.getItem('bg-date');
-    const savedBg = localStorage.getItem('daily-background');
-    
-    if (savedDate !== today || !savedBg) {
-      const randomBg = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-      localStorage.setItem('bg-date', today);
-      localStorage.setItem('daily-background', randomBg);
-      setCurrentBackground(randomBg);
-    } else {
-      setCurrentBackground(savedBg);
-    }
-  }, [setCurrentBackground]);
-
-  const changeRandomBackground = () => {
-    if (isChanging) return;
-    
-    setIsChanging(true);
-    const randomBg = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
-    
-    setTimeout(() => {
-      setCurrentBackground(randomBg);
-      localStorage.setItem('daily-background', randomBg);
-      setIsChanging(false);
-    }, 300);
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file && file.type.startsWith('image/')) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        setCurrentBackground(imageUrl);
-        sessionStorage.setItem('custom-background', imageUrl);
-      };
-      reader.readAsDataURL(file);
-    }
-    // 清除文件选择，允许重复上传同一文件
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const openFileSelector = () => {
-    fileInputRef.current?.click();
-  };
-
-  return (
-    <div className="flex gap-3 items-center">
-      {/* 随机更换背景 */}
-      <button
-        onClick={changeRandomBackground}
-        disabled={isChanging}
-        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed group"
-        title="随机背景"
-      >
-        <i className={`fas fa-random text-white transition-transform duration-300 ${isChanging ? 'animate-spin' : 'group-hover:rotate-180'}`} />
-        <span className="text-white text-sm whitespace-nowrap hidden sm:inline">随机背景</span>
-      </button>
-
-      {/* 自定义背景上传 */}
-      <button
-        onClick={openFileSelector}
-        className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full transition-all duration-300 hover:scale-105 group"
-        title="自定义背景"
-      >
-        <i className="fas fa-upload text-white group-hover:scale-110 transition-transform duration-300" />
-        <span className="text-white text-sm whitespace-nowrap hidden sm:inline">自定义背景</span>
-      </button>
-
-      {/* 隐藏的文件输入 */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileUpload}
-        className="hidden"
-      />
-    </div>
-  );
-}
-=======
 export default function BackgroundManager({ setCurrentBackground, triggerRef }: BackgroundManagerProps) {
   const [isChanging, setIsChanging] = useState(false);
 
-  // 核心：随机更换背景的函数
   const changeRandomBackground = () => {
     if (isChanging) return;
     setIsChanging(true);
     
-    // 随机选一张图
     const randomBg = backgroundImages[Math.floor(Math.random() * backgroundImages.length)];
     
-    // 立即执行更新
     setCurrentBackground(randomBg);
     localStorage.setItem('daily-background', randomBg);
     
-    // 模拟加载延迟，防止连续点击
     setTimeout(() => {
       setIsChanging(false);
     }, 500);
   };
 
-  // 【关键修复】：将这个函数绑定到外部传进来的 triggerRef 上
   useEffect(() => {
     if (triggerRef) {
       triggerRef.current = changeRandomBackground;
     }
   }, [triggerRef]);
 
-// 初始化逻辑：取消“同日不换”的限制
   useEffect(() => {
-    // 不再判断日期是否相同，只要页面加载/刷新，就执行随机换图
+    // 初始化逻辑：页面加载/刷新时立即执行换图
     changeRandomBackground();
-    
-    // 如果你依然想保留“记录最后一次更换日期”的功能，可以留着下面这行，但它不再阻碍换图
-    const today = new Date().toDateString();
-    localStorage.setItem('bg-date', today);
-  }, []); // 这里的空数组确保只在页面加载（含手动刷新）时执行一次
+    localStorage.setItem('bg-date', new Date().toDateString());
+  }, []);
 
-  // 这个组件只负责逻辑，不显示任何 UI 按钮，所以返回空
   return null;
 }
->>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)

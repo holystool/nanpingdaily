@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -18,41 +17,9 @@ export default function QuoteDisplay({ currentQuote, setCurrentQuote }: QuoteDis
     setCurrentQuote(randomQuote);
   }, [setCurrentQuote]);
 
-  const refreshQuote = () => {
-    if (isAnimating) return;
-    
-    setIsAnimating(true);
-    
-    // 淡出动画
-    const quoteElement = document.querySelector('.quote-content');
-    if (quoteElement) {
-      quoteElement.classList.add('opacity-0', 'transform', 'translate-y-4');
-    }
-    
-    setTimeout(() => {
-      // 选择新的随机金句
-      let newQuote;
-      do {
-        newQuote = getRandomQuote();
-      } while (newQuote.quote_content === currentQuote.quote_content && quotesData.length > 1);
-      
-      setCurrentQuote(newQuote);
-      
-      // 淡入动画
-      setTimeout(() => {
-        if (quoteElement) {
-          quoteElement.classList.remove('opacity-0', 'translate-y-4');
-        }
-        setIsAnimating(false);
-      }, 100);
-    }, 300);
-  };
-
   return (
     <div className="text-center px-4">
-      <div 
-        className="quote-content transition-all duration-300 ease-in-out"
-      >
+      <div className="quote-content transition-all duration-300 ease-in-out">
         {/* 金句内容 */}
         <blockquote 
           className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-medium text-white leading-relaxed mb-8 max-w-4xl mx-auto"
@@ -76,21 +43,6 @@ export default function QuoteDisplay({ currentQuote, setCurrentQuote }: QuoteDis
           </cite>
         </div>
       </div>
-<<<<<<< HEAD
-      
-      {/* 刷新按钮 */}
-      <button
-        onClick={refreshQuote}
-        disabled={isAnimating}
-        className="mt-12 w-12 h-12 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed mx-auto group"
-        title="换一句"
-      >
-        <i 
-          className={`fas fa-sync-alt text-white text-lg transition-transform duration-300 ${isAnimating ? 'animate-spin' : 'group-hover:rotate-180'}`}
-        />
-      </button>
-=======
->>>>>>> e23c360 (优化：实现极简菜单、整点报时及背景音续播)
     </div>
   );
 }
