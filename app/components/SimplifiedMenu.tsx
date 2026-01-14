@@ -131,9 +131,9 @@ export default function SimplifiedMenu({ setCurrentBackground }: { setCurrentBac
               setAutoRefresh(val);
               localStorage.setItem('setting-auto-refresh', String(val));
               // 【修复点】：如果开启刷新，立即执行一次全页刷新
-              if (val) {
-                setTimeout(() => window.location.reload(), 300);
-              }
+              //if (val) {
+                //setTimeout(() => window.location.reload(), 300);
+              //}
             }} />
           </div>
           
