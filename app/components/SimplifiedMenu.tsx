@@ -8,146 +8,144 @@ export default function SimplifiedMenu({ setCurrentBackground }: { setCurrentBac
   const [hourlyChime, setHourlyChime] = useState(false);
   const [autoRefresh, setAutoRefresh] = useState(false);
 
-  const menuRef = useRef<HTMLDivElement>(null); // 用于定位菜单容器
+  const menuRef = useRef<HTMLDivElement>(null);
   const envAudio = useRef<HTMLAudioElement | null>(null);
   const chimeAudio = useRef<HTMLAudioElement | null>(null);
+  // 使用 Ref 保持对最新刷新函数的引用
+  const refreshFnRef = useRef<() => void>(() => {});
 
-  // --- 新增：点击外部收回菜单的逻辑 ---
+  // 1. 初始化设置与音频
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      // 如果菜单是打开的，且点击的对象不在菜单容器内，则关闭
-      if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-
-    // 监听全局点击事件
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [isOpen]);
-
-  useEffect(() => {
-    // 1. 初始化音频
     const env = new Audio('/hj.mp3');
     env.loop = true;
     envAudio.current = env;
     chimeAudio.current = new Audio('/zs.mp3');
 
-    // 2. 加载设置
+    // 载入持久化设置
     const savedAmbience = localStorage.getItem('setting-ambience') === 'true';
     const savedChime = localStorage.getItem('setting-chime') === 'true';
     const savedAutoRefresh = localStorage.getItem('setting-auto-refresh') === 'true';
-    const savedTime = localStorage.getItem('ambience-current-time');
 
     setAmbience(savedAmbience);
     setHourlyChime(savedChime);
     setAutoRefresh(savedAutoRefresh);
 
-    if (savedTime && env) {
-      env.currentTime = parseFloat(savedTime);
-    }
+    // 音频续播逻辑
+    const savedTime = localStorage.getItem('ambience-current-time');
+    if (savedTime && env) env.currentTime = parseFloat(savedTime);
 
-    // 3. 记录进度
+    // 记录音频时间，用于下次续播
     const timeTracker = setInterval(() => {
       if (envAudio.current && !envAudio.current.paused) {
-        localStorage.setItem('ambience-current-time', envAudio.current.currentTime.toString());
+        localStorage.setItem('ambience-current-time', String(envAudio.current.currentTime));
       }
-    }, 1000);
-
-    // 4. 自动播放/手势激活逻辑
-    const attemptPlay = () => {
-      if (savedAmbience) {
-        env.play().catch(() => {
-          const playOnGesture = () => {
-            env.play();
-            document.removeEventListener('click', playOnGesture);
-          };
-          document.addEventListener('click', playOnGesture);
-        });
-      }
-    };
-    attemptPlay();
+    }, 2000);
 
     return () => clearInterval(timeTracker);
   }, []);
 
-  // 环境音开关
+  // 2. 核心报时系统：整点监控（包含声钟错开逻辑）
+  useEffect(() => {
+    const checkTime = () => {
+      const now = new Date();
+      // 每一小时整点触发
+      if (now.getMinutes() === 0 && now.getSeconds() === 0) {
+        // A. 如果开启了钟声
+        if (hourlyChime) {
+          chimeAudio.current?.play();
+        }
+        
+        // B. 如果开启了刷新，则在钟声响起 1.5 秒后（错开负载）刷新背景
+        if (autoRefresh) {
+          setTimeout(() => {
+            window.location.reload(); // 整点时采取全页刷新以确保格言同步
+          }, 1500);
+        }
+      }
+    };
+
+    const timer = setInterval(checkTime, 1000);
+    return () => clearInterval(timer);
+  }, [hourlyChime, autoRefresh]);
+
+  // 3. 处理音频开关
   useEffect(() => {
     if (ambience) {
-      envAudio.current?.play().catch(() => {});
+      envAudio.current?.play().catch(() => {
+        const playOnGesture = () => {
+          envAudio.current?.play();
+          document.removeEventListener('click', playOnGesture);
+        };
+        document.addEventListener('click', playOnGesture);
+      });
     } else {
       envAudio.current?.pause();
-      localStorage.setItem('ambience-current-time', '0');
     }
     localStorage.setItem('setting-ambience', String(ambience));
   }, [ambience]);
 
-  // 整点逻辑
+  // 4. 点击外部收回菜单
   useEffect(() => {
-    const timer = setInterval(() => {
-      const now = new Date();
-      if (now.getMinutes() === 0 && now.getSeconds() === 0) {
-        if (autoRefresh) {
-          if (hourlyChime) {
-            chimeAudio.current?.play();
-            setTimeout(() => {
-              localStorage.removeItem('daily-background');
-              window.location.reload();
-            }, 3500);
-          } else {
-            localStorage.removeItem('daily-background');
-            window.location.reload();
-          }
-        } else if (hourlyChime) {
-          chimeAudio.current?.play();
-        }
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
       }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [hourlyChime, autoRefresh]);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
 
-  const handleChimeToggle = (checked: boolean) => {
-    setHourlyChime(checked);
-    localStorage.setItem('setting-chime', String(checked));
-    if (checked) chimeAudio.current?.play();
-  };
-
-  const handleRefreshToggle = (checked: boolean) => {
-    setAutoRefresh(checked);
-    localStorage.setItem('setting-auto-refresh', String(checked));
-    if (checked) {
-      localStorage.removeItem('daily-background');
-      window.location.reload();
-    }
-  };
+  const ToggleItem = ({ label, checked, onChange }: { label: string, checked: boolean, onChange: (val: boolean) => void }) => (
+    <div className="flex items-center justify-between cursor-pointer py-1" onClick={() => onChange(!checked)}>
+      <span className="text-sm text-white/80 tracking-widest">{label}</span>
+      <div className={`relative w-10 h-5 flex items-center rounded-full px-1 transition-colors duration-300 md:hidden ${checked ? 'bg-white/40' : 'bg-white/10'}`}>
+        <div className={`bg-white w-3 h-3 rounded-full shadow-md transition-transform duration-300 ${checked ? 'translate-x-5' : 'translate-x-0'}`} />
+      </div>
+      <input 
+        type="checkbox" 
+        checked={checked} 
+        readOnly
+        className="hidden md:block w-4 h-4 accent-white/60 cursor-pointer appearance-none checked:bg-white/60 checked:after:content-['✓'] checked:after:text-black checked:after:text-[10px] checked:after:flex checked:after:justify-center checked:after:items-center border border-white/20 rounded"
+      />
+    </div>
+  );
 
   return (
-    // 使用 menuRef 包裹整个菜单区域（包括按钮和面板）
     <div ref={menuRef} className="fixed top-4 left-2 md:top-8 md:left-8 z-50">
-      <button 
-        onClick={() => setIsOpen(!isOpen)}
-        className="w-10 h-10 flex items-center justify-center transition-all opacity-40 hover:opacity-100"
-      >
+      <button onClick={() => setIsOpen(!isOpen)} className="w-10 h-10 flex items-center justify-center opacity-40 hover:opacity-100">
         <i className={`fas ${isOpen ? 'fa-times' : 'fa-bars'} text-white text-xl`}></i>
       </button>
 
       {isOpen && (
-        <div className="absolute top-10 left-2 w-48 md:w-56 bg-black/30 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="absolute top-10 left-2 w-48 md:w-56 bg-black/40 backdrop-blur-xl border border-white/10 rounded-2xl p-5 shadow-2xl animate-in fade-in zoom-in duration-200">
           <div className="space-y-5">
-            <label className="flex items-center justify-between cursor-pointer">
-              <span className="text-sm text-white/80 tracking-widest">声临其境</span>
-              <input type="checkbox" checked={ambience} onChange={e => setAmbience(e.target.checked)} className="w-4 h-4 accent-white/50" />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
-              <span className="text-sm text-white/80 tracking-widest">整点钟声</span>
-              <input type="checkbox" checked={hourlyChime} onChange={e => handleChimeToggle(e.target.checked)} className="w-4 h-4 accent-white/50" />
-            </label>
-            <label className="flex items-center justify-between cursor-pointer">
-              <span className="text-sm text-white/80 tracking-widest">整点刷新</span>
-              <input type="checkbox" checked={autoRefresh} onChange={e => handleRefreshToggle(e.target.checked)} className="w-4 h-4 accent-white/50" />
-            </label>
+            <ToggleItem label="声临其境" checked={ambience} onChange={setAmbience} />
+            
+            <ToggleItem label="整点钟声" checked={hourlyChime} onChange={(val) => {
+              setHourlyChime(val);
+              localStorage.setItem('setting-chime', String(val));
+              if (val) chimeAudio.current?.play(); // 勾选当下试听一次
+            }} />
+            
+            <ToggleItem label="整点刷新" checked={autoRefresh} onChange={(val) => {
+              setAutoRefresh(val);
+              localStorage.setItem('setting-auto-refresh', String(val));
+              // 【修复点】：如果开启刷新，立即执行一次全页刷新
+              if (val) {
+                setTimeout(() => window.location.reload(), 300);
+              }
+            }} />
+          </div>
+          
+          <div className="mt-6 pt-4 border-t border-white/10">
+            <button 
+              onClick={() => {
+                window.location.reload();
+              }}
+              className="w-full text-left text-xs text-white/40 hover:text-white/100 tracking-widest transition-colors"
+            >
+              手动更新背景与文字
+            </button>
           </div>
         </div>
       )}

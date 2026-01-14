@@ -1,3 +1,4 @@
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Pacifico, Noto_Serif_SC } from "next/font/google";
 import "./globals.css";
@@ -26,19 +27,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// 这里的 metadata 已经配置好了图标
 export const metadata: Metadata = {
-  title: "南屏日签",
+  title: "南屏日签 · 禅意生活",
   description: "每日一句禅语，静心养性",
-  icons: {
-    icon: "/icon.png",         // 浏览器标签图标
-    apple: "/icon.png",        // iOS 桌面图标
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "南屏日签",
-  },
 };
 
 export default function RootLayout({
@@ -49,11 +40,12 @@ export default function RootLayout({
   return (
     <html lang="zh-CN" suppressHydrationWarning={true}>
       <head>
-        {/* 引入你原本需要的外部资源 */}
         <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
       </head>
-      <body className={`${geistSans.variable} ${geistMono.variable} ${notoSerifSC.variable} ${pacifico.variable} antialiased`}>
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} ${pacifico.variable} ${notoSerifSC.variable} antialiased`}
+      >
         {children}
       </body>
     </html>
