@@ -44,7 +44,7 @@ export default function Home() {
       {/* 4. 内容容器 */}
       <div className={`relative z-10 h-screen flex flex-col transition-all duration-1000 ${isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
         
-        {/* 顶部日期 */}
+        {/* 顶部日期：位置优化 */}
         <div className="flex-shrink-0 pt-20 md:pt-24 pb-8">
           <DateDisplay />
         </div>
@@ -60,7 +60,7 @@ export default function Home() {
         {/* 底部占位 */}
         <div className="flex-shrink-0 h-24" />
         
-        {/* 5. 极简菜单 (已包含音频续播、报时、刷新逻辑) */}
+        {/* 5. 极简菜单 */}
         <SimplifiedMenu setCurrentBackground={setCurrentBackground} />
       </div>
     </div>

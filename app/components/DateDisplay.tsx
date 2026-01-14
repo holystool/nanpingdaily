@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 // @ts-ignore
 import { Lunar, Solar } from 'lunar-javascript';
+import { getLunarDate } from './lunar-calendar';
 
 interface BuddhistEvent {
   name: string;
