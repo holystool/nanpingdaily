@@ -59,7 +59,7 @@ export default function SimplifiedMenu({ setCurrentBackground }: { setCurrentBac
         if (autoRefresh) {
           setTimeout(() => {
             window.location.reload(); // 整点时采取全页刷新以确保格言同步
-          }, 1500);
+          }, 5000);
         }
       }
     };
